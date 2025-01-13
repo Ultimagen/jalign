@@ -56,7 +56,11 @@ int main(int argc, char* argv[]) {
 	// loop on reading lines and process
 	int lineno = 0;
 	struct refs_t last_refs;
-	printf("score\tjumpInsertSize\tjumpRange\tbeginPos1\tapath1\tbeginPos2\tapath2\tscore1\tbegin1\tcigar1\tscore2\tbegin2\tcigar2\n");
+	printf("score\tjumpInsertSize\tjumpRange\t");
+	printf("jbegin1\tjapath1\tjreadlen1\tjreflen1\t");
+	printf("jbegin2\tjapath2\tjreadlen2\tjreflen2\t");
+	printf("score1\tbegin1\tapath1\treadlen1\treflen1\t");
+	printf("score2\tbegin2\tapath2\treadlen2\treflen2\n");
 	while ( fgets(linebuf[linebuf_index], sizeof(linebuf[0]), stdin) ) {
 		lineno++;
 		char* line = linebuf[linebuf_index];
@@ -104,10 +108,10 @@ int main(int argc, char* argv[]) {
 				jump_aligner, seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], refs.ptr[1], refs.ptr[1] + refs.len[1], result);
 		string apath1 = to_string(result.align1.apath);
 		string apath2 = to_string(result.align2.apath);
-		printf("%d\t%d\t%d\t%d\t%s\t%d\t%s", 
+		printf("%d\t%d\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%d\t%d", 
 					result.score, result.jumpInsertSize, result.jumpRange,
-					result.align1.beginPos, apath1.c_str(),
-					result.align2.beginPos, apath2.c_str()
+					result.align1.beginPos, apath1.c_str(), apath_read_length(result.align1.apath), apath_ref_length(result.align1.apath),
+					result.align2.beginPos, apath2.c_str(), apath_read_length(result.align2.apath), apath_ref_length(result.align2.apath)
 					);
 
 		// simple align
@@ -115,9 +119,9 @@ int main(int argc, char* argv[]) {
 			AlignmentResult<int> result;
 			aligner.align(seq, seq + seq_len, refs.ptr[i], refs.ptr[i] + refs.len[i], result);
 			string apath = to_string(result.align.apath);
-			printf("\t%d\t%d\t%s", 
+			printf("\t%d\t%d\t%s\t%d\t%d", 
 						result.score,
-						result.align.beginPos, apath.c_str()
+						result.align.beginPos, apath.c_str(), apath_read_length(result.align.apath), apath_ref_length(result.align.apath)
 						);
 		}
 
