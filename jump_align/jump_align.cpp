@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
 	// loop on reading lines and process
 	int lineno = 0;
 	struct refs_t last_refs;
-	printf("score\tjumpInsertSize\tjumpRange\tbeginPos1\tapath1\tbeginPos2\tapath2\tscore1\tbegin1\tcigar1\tscore2\tbegin2]tcigar2\n");
+	printf("score\tjumpInsertSize\tjumpRange\tbeginPos1\tapath1\tbeginPos2\tapath2\tscore1\tbegin1\tcigar1\tscore2\tbegin2\tcigar2\n");
 	while ( fgets(linebuf[linebuf_index], sizeof(linebuf[0]), stdin) ) {
 		lineno++;
 		char* line = linebuf[linebuf_index];
