@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
+#include <thread>
 #include "GlobalAligner.hpp"
 #include "GlobalJumpAligner.hpp"
 #include "logging.h"
@@ -51,7 +52,8 @@ int main(int argc, char* argv[]) {
 	// configure aligners
 	AlignmentScores<int> scores(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), false);
 	GlobalJumpAligner<int> jump_aligner(scores, atoi(argv[6]));
-	GlobalAligner<int> aligner(scores);
+	GlobalAligner<int> aligner1(scores);
+	GlobalAligner<int> aligner2(scores);
 
 	// loop on reading lines and process
 	int lineno = 0;
@@ -102,10 +104,30 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-		// jump align
+		// setup results for the different aligners
 		JumpAlignmentResult<int> result;
-		jumpAlign<GlobalJumpAligner<int>,const char*,int>(
+		AlignmentResult<int> result1;
+		AlignmentResult<int> result2;
+
+		// jump align
+		thread t([&] {
+			jumpAlign<GlobalJumpAligner<int>,const char*,int>(
 				jump_aligner, seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], refs.ptr[1], refs.ptr[1] + refs.len[1], result);
+
+		});
+
+		// ref1 align
+		thread t1([&] {
+			aligner1.align(seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], result1);
+		});
+		thread t2([&] {
+			aligner2.align(seq, seq + seq_len, refs.ptr[1], refs.ptr[1] + refs.len[1], result2);
+		});
+		t.join();
+		t1.join();
+		t2.join();
+
+		// process jump align results
 		string apath1 = to_string(result.align1.apath);
 		string apath2 = to_string(result.align2.apath);
 		printf("%d\t%d\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%d\t%d", 
@@ -114,10 +136,9 @@ int main(int argc, char* argv[]) {
 					result.align2.beginPos, apath2.c_str(), apath_read_length(result.align2.apath), apath_ref_length(result.align2.apath)
 					);
 
-		// simple align
+		// simple align results
 		for ( int i = 0 ; i < 2 ; i++ ) {
-			AlignmentResult<int> result;
-			aligner.align(seq, seq + seq_len, refs.ptr[i], refs.ptr[i] + refs.len[i], result);
+			AlignmentResult<int>& result = !i ? result1 : result2;
 			string apath = to_string(result.align.apath);
 			printf("\t%d\t%d\t%s\t%d\t%d", 
 						result.score,
