@@ -43,9 +43,9 @@ string to_string(ALIGNPATH::path_t& path) {
 int main(int argc, char* argv[]) {
 	
 	// check args
-	if ( argc != 7 ) {
+	if ( argc < 7 ) {
 		fprintf(stderr, "wrong score arguments:\n");
-		fprintf(stderr, "usage: %s <match> <mismatch> <open> <extend> <offedge> <jump>\n", argv[0]);
+		fprintf(stderr, "usage: %s <match> <mismatch> <open> <extend> <offedge> <jump> [input_file]\n", argv[0]);
 		exit(-1);
 	}
 
@@ -55,6 +55,18 @@ int main(int argc, char* argv[]) {
 	GlobalAligner<int> aligner1(scores);
 	GlobalAligner<int> aligner2(scores);
 
+	// open input file
+	FILE* infile;
+	if ( argc >= 8 ) {
+		if ( !(infile = fopen(argv[7], "r")) ) {
+			fprintf(stderr, "failed to open input file: %s\n", argv[7]);
+			exit(-1);
+		}
+	} else {
+		infile = stdin;
+	}
+
+
 	// loop on reading lines and process
 	int lineno = 0;
 	struct refs_t last_refs;
@@ -63,7 +75,7 @@ int main(int argc, char* argv[]) {
 	printf("jbegin2\tjapath2\tjreadlen2\tjreflen2\t");
 	printf("score1\tbegin1\tapath1\treadlen1\treflen1\t");
 	printf("score2\tbegin2\tapath2\treadlen2\treflen2\n");
-	while ( fgets(linebuf[linebuf_index], sizeof(linebuf[0]), stdin) ) {
+	while ( fgets(linebuf[linebuf_index], sizeof(linebuf[0]), infile) ) {
 		lineno++;
 		char* line = linebuf[linebuf_index];
 
@@ -109,11 +121,11 @@ int main(int argc, char* argv[]) {
 		AlignmentResult<int> result1;
 		AlignmentResult<int> result2;
 
+#ifdef NDEBUG
 		// jump align
 		thread t([&] {
 			jumpAlign<GlobalJumpAligner<int>,const char*,int>(
 				jump_aligner, seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], refs.ptr[1], refs.ptr[1] + refs.len[1], result);
-
 		});
 
 		// ref1 align
@@ -126,6 +138,12 @@ int main(int argc, char* argv[]) {
 		t.join();
 		t1.join();
 		t2.join();
+#else
+		jumpAlign<GlobalJumpAligner<int>,const char*,int>(
+			jump_aligner, seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], refs.ptr[1], refs.ptr[1] + refs.len[1], result);
+		aligner1.align(seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], result1);
+		aligner2.align(seq, seq + seq_len, refs.ptr[1], refs.ptr[1] + refs.len[1], result2);
+#endif		
 
 		// process jump align results
 		string apath1 = to_string(result.align1.apath);
