@@ -4,6 +4,9 @@ ARG BUILD="all"
 ############################
 FROM ubuntu:22.04 AS build-base
 
+ENV TZ=US
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 RUN apt-get update && \
   apt-get -y install --no-install-recommends \
     libssl-dev \
@@ -35,12 +38,16 @@ FROM build-base AS dev
 RUN apt-get update && \
   apt-get -y install --no-install-recommends \
     vim \
-    python2.7 \
     ssh \
     zsh \
     wget \
-    unzip \
-  ;
+    unzip
+
+RUN apt-get update && \
+  apt-get -y install --no-install-recommends \
+    python3-pip
+RUN ln -s /usr/bin/python3 /usr/bin/python
+RUN pip install jupyterlab pysam
 
 # download manta source code (no need to compule at this time)
 RUN mkdir -p manta
@@ -48,7 +55,13 @@ RUN cd manta && wget --no-check-certificate https://github.com/Illumina/manta/ar
 
 # build executable
 FROM dev AS build
-RUN mkdir -p jump_align
-COPY . jump_align/
-RUN cd jump_align && ./mk.sh && cp jump_align /usr/local/bin
+RUN mkdir -p jalign
+COPY . jalign/
+RUN cd jalign/jump_align && ./mk.sh && cp jump_align /usr/local/bin
+
+# prepare python stuff
+RUN cd jalign && jupyter-nbconvert --to python cnv_realign.ipynb && chmod +x cnv_realign.py
+
+
+WORKDIR /jalign
 
