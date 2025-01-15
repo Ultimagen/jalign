@@ -45,7 +45,8 @@ RUN apt-get update && \
 
 RUN apt-get update && \
   apt-get -y install --no-install-recommends \
-    python3-pip
+    python3-pip \
+	parallel
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN pip install jupyterlab pysam
 

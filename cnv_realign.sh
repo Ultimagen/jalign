@@ -6,4 +6,4 @@ if [ "$#" -ne 4 ]; then
 fi
 
 
-jupyter-nbconvert --to python cnv_realign.ipynb --stdout | python /dev/stdin $1 $2 $3 $4
+jupyter-nbconvert --to python cnv_realign.ipynb --stdout | python3 /dev/stdin $1 $2 $3 $4
