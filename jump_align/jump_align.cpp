@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
 		AlignmentResult<int> result1;
 		AlignmentResult<int> result2;
 
-#ifdef NDEBUG
+#ifdef USE_THREADS
 		// jump align
 		thread t([&] {
 			jumpAlign<GlobalJumpAligner<int>,const char*,int>(

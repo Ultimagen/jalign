@@ -1,6 +1,6 @@
 #!/bin/bash
 
-g++ -g -std=c++11 -Werror \
+g++ -std=c++11 -Werror \
  -Wno-#pragma-messages \
  -I ../manta/manta-1.6.0/src/c++/lib/alignment/ \
  -I ../manta/manta-1.6.0/src/c++/lib \
