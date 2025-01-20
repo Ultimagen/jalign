@@ -7,19 +7,17 @@
 #include "logging.h"
 
 // some hard limits
+#define QNAME_MAX_LEN 1000
 #define SEQ_MAX_LEN	5000
 #define REF_MAX_LEN 5000
 
 // calculated limits
-#define LINE_MAX_LEN (SEQ_MAX_LEN + 1 + REF_MAX_LEN + 1 + REF_MAX_LEN + 1 + 1)
+#define LINE_MAX_LEN (QNAME_MAX_LEN + 1 + SEQ_MAX_LEN + 1 + REF_MAX_LEN + 1 + REF_MAX_LEN + 1 + 1)
 
 // line buffers used for reading input
 // double buffering used to optimize the (common?) case where the reference repeats from the previous line
 static char linebuf[2][LINE_MAX_LEN];
 static int linebuf_index = 0;
-
-// other local vars
-static const char* valid_bases = "ACGTNacgtn";
 
 // handy structure to keep reference pointers and lengths
 struct refs_t {
@@ -84,13 +82,17 @@ int main(int argc, char* argv[]) {
 			continue;
 		}
 
-		// ignore lines not starting with a valid base
-		if ( !strchr(valid_bases, line[0]) ) {
+		// ignore lines not starting with a alphanum
+		if ( !isalnum(line[0]) ) {
 			continue;
 		}
 
-		// parse the line, get sequence
-		char* seq = strtok(line, "\t");
+		// parse the line, get qname and sequence
+		char* qname = strtok(line, "\t");
+		if ( !qname ) {
+			LOG(ERR) << "failed to read qname on lineno: " << lineno;
+		}
+		char* seq = strtok(nullptr, "\t");
 		if ( !seq ) {
 			LOG(ERR) << "failed to read sequence on lineno: " << lineno;
 		}
@@ -148,7 +150,8 @@ int main(int argc, char* argv[]) {
 		// process jump align results
 		string apath1 = to_string(result.align1.apath);
 		string apath2 = to_string(result.align2.apath);
-		printf("%d\t%d\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%d\t%d", 
+		printf("%s\t%d\t%d\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%d\t%d", 
+					qname,
 					result.score, result.jumpInsertSize, result.jumpRange,
 					result.align1.beginPos, apath1.c_str(), apath_read_length(result.align1.apath), apath_ref_length(result.align1.apath),
 					result.align2.beginPos, apath2.c_str(), apath_read_length(result.align2.apath), apath_ref_length(result.align2.apath)
