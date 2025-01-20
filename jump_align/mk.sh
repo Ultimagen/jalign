@@ -1,6 +1,6 @@
 #!/bin/bash -xv
 
-g++ -Werror \
+g++ -O3 -Werror \
  -I /manta/manta-1.6.0/src/c++/lib/alignment/ \
  -I /manta/manta-1.6.0/src/c++/lib \
  -DNDEBUG \
