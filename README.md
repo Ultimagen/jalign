@@ -57,7 +57,7 @@ The four types are also marked by the JT tag, which has the value of 0, 1, 2, or
 
 Each read (except JT=0) also contains the tag JS, which indicates the relevant alignment score.
 
-To process whole genome it is best to shard the input bed into smaller sections (10 lines or so) and to run the tool on each smaller bed file - following with a merge stage. This can be done by WDL or other frameworks. 
+To process whole genome it is best to shard the input bed into smaller sections (10 lines or so) and to run the tool on each smaller bed file - following with a merge stage. This can be done by WDL, bash scripts (see scripts folder) or other frameworks. 
 
 ### performance
 
