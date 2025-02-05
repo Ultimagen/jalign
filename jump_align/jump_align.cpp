@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 	// loop on reading lines and process
 	int lineno = 0;
 	struct refs_t last_refs;
-	printf("score\tjumpInsertSize\tjumpRange\t");
+	printf("readName\tscore\tjumpInsertSize\tjumpRange\t");
 	printf("jbegin1\tjapath1\tjreadlen1\tjreflen1\t");
 	printf("jbegin2\tjapath2\tjreadlen2\tjreflen2\t");
 	printf("score1\tbegin1\tapath1\treadlen1\treflen1\t");
