@@ -8,8 +8,8 @@
 
 // some hard limits
 #define QNAME_MAX_LEN 1000
-#define SEQ_MAX_LEN	5000
-#define REF_MAX_LEN 5000
+#define SEQ_MAX_LEN	1000000
+#define REF_MAX_LEN 1000000
 
 // calculated limits
 #define LINE_MAX_LEN (QNAME_MAX_LEN + 1 + SEQ_MAX_LEN + 1 + REF_MAX_LEN + 1 + REF_MAX_LEN + 1 + 1)
