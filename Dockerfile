@@ -18,6 +18,7 @@ RUN apt-get update && \
     pkg-config \
     bcftools \
     samtools \
+	bedtools \
   && \
   rm -rf /var/lib/apt/lists/* && apt-get autoclean
 
