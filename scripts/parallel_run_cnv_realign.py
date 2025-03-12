@@ -8,7 +8,7 @@ from joblib import Parallel, delayed
 
 
 def jalign_cnv_realign(input_cram,range_bed,ref_fasta,output_prefix):
-    cmd = f"python cnv_realign.py {input_cram} {range_bed} {ref_fasta} {output_prefix}"
+    cmd = f"python /jalign/cnv_realign.py {input_cram} {range_bed} {ref_fasta} {output_prefix}"
     print(cmd)
     subprocess.check_output(cmd, shell=True)
 
