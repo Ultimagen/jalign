@@ -49,7 +49,8 @@ RUN apt-get update && \
     python3-pip \
 	parallel
 RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN pip install jupyterlab pysam networkx
+RUN pip install jupyterlab pysam networkx joblib
+
 
 # download manta source code (no need to compule at this time)
 RUN mkdir -p manta
