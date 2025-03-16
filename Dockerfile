@@ -67,6 +67,7 @@ RUN cd jalign && jupyter-nbconvert --to python cnv_realign.ipynb && chmod +x cnv
 RUN cd jalign && jupyter-nbconvert --to python sa_walker.ipynb && chmod +x sa_walker.py
 RUN cd jalign && jupyter-nbconvert --to python pair_haps.ipynb && chmod +x pair_haps.py
 
+ENV PATH="/jalign/:/jalign/jump_align:${PATH}"
 
 WORKDIR /jalign
 

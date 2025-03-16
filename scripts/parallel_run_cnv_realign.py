@@ -70,7 +70,7 @@ cmd = f"rm {out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.
 print(cmd)
 subprocess.check_output(cmd, shell=True)
 
-print(f"output files are:")
+print("output files are:")
 print(f"{out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.bed")
 print(f"{out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.bam")
 print(f"{out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.bam.bai")
