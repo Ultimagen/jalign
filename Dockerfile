@@ -49,7 +49,8 @@ RUN apt-get update && \
     python3-pip \
 	parallel
 RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN pip install jupyterlab pysam networkx
+RUN pip install jupyterlab pysam networkx joblib
+
 
 # download manta source code (no need to compule at this time)
 RUN mkdir -p manta
@@ -66,6 +67,7 @@ RUN cd jalign && jupyter-nbconvert --to python cnv_realign.ipynb && chmod +x cnv
 RUN cd jalign && jupyter-nbconvert --to python sa_walker.ipynb && chmod +x sa_walker.py
 RUN cd jalign && jupyter-nbconvert --to python pair_haps.ipynb && chmod +x pair_haps.py
 
+ENV PATH="/jalign/:/jalign/jump_align:${PATH}"
 
 WORKDIR /jalign
 
