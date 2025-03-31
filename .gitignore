@@ -1,5 +1,6 @@
 .ipynb_checkpoints/*
 .*
+!.devcontainer
 manta/**
 jump_align/jump_align.dSYM/
 jump_align/jump_align
