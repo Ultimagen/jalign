@@ -1,6 +1,7 @@
 .ipynb_checkpoints/*
 .*
 !.devcontainer
+!.vscode
 manta/**
 jump_align/jump_align.dSYM/
 jump_align/jump_align
