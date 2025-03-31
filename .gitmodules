@@ -1,0 +1,3 @@
+[submodule "manta"]
+	path = manta
+	url = git@github.com:Illumina/manta.git
