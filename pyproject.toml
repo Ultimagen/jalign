@@ -1,0 +1,18 @@
+[project]
+name = "jalign"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "joblib>=1.4.2",
+    "jupyterlab>=4.3.6",
+    "networkx>=3.4.2",
+    "pysam>=0.23.0",
+]
+
+[dependency-groups]
+dev = [
+    "crcmod>=1.7",
+]
