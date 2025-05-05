@@ -7,8 +7,8 @@ import sys
 from joblib import Parallel, delayed
 
 
-def jalign_cnv_realign(input_cram,range_bed,ref_fasta,output_prefix):
-    cmd = f"python /jalign/cnv_realign.py {input_cram} {range_bed} {ref_fasta} {output_prefix}"
+def jalign_cnv_realign(input_cram,range_bed,ref_fasta,output_prefix,mode,min_mismatches):
+    cmd = f"python /jalign/cnv_realign.py {input_cram} {range_bed} {ref_fasta} {output_prefix} {mode} {min_mismatches}"
     print(cmd)
     subprocess.check_output(cmd, shell=True)
 
@@ -20,6 +20,8 @@ parser.add_argument("--input_cram", help="input cram file",required=True,type=st
 parser.add_argument("--ref_fasta", help="reference fasta file", required=False, type=str)
 parser.add_argument("--out_folder", help="output folder", required=True, type=str)
 parser.add_argument("--sample_name", help="sample_name", required=True, type=str)
+parser.add_argument("--min_mismatches", help="the minimal mismatches to make a read be considered", required=False, type=int, default=0)
+parser.add_argument("--mode", help="jalign mode , one of: {DEL,DUP}", required=False, type=str, default="DEL")
 parser.add_argument("--num_jobs", help="number of jobs run in parallel", required=True, type=str)
 parser.add_argument("-v","--verbose",type=bool,required=False,default=True,help="""Whether to print debug messages (default: True)""",)
 
@@ -36,7 +38,7 @@ print(f"found {len(range_bed_files)} bed files in {args.folder_with_cnv_del_bed_
 
 # run jalign
 num_jobs = args.num_jobs
-Parallel(n_jobs=num_jobs)(delayed(jalign_cnv_realign)(args.input_cram,range_bed,args.ref_fasta,pjoin(args.out_folder,os.path.basename(range_bed)+'.jalign')) for range_bed in range_bed_files)
+Parallel(n_jobs=num_jobs)(delayed(jalign_cnv_realign)(args.input_cram,range_bed,args.ref_fasta,pjoin(args.out_folder,os.path.basename(range_bed)+'.jalign'),args.mode,args.min_mismatches) for range_bed in range_bed_files)
 
 out_DEL_jalign_merged_results_folder = pjoin(args.out_folder,'DEL_jalign_merged_results')
 os.makedirs(out_DEL_jalign_merged_results_folder)
