@@ -58,9 +58,12 @@ RUN cd manta && wget --no-check-certificate https://github.com/Illumina/manta/ar
 
 # build executable
 FROM dev AS build
-# Create user (UID 1000) - for running
-RUN groupadd -g 1000 jalign && \
-    useradd -u 1000 -g 1000 -m -s /bin/bash jalign
+
+# Create non root user
+ARG USER_ID=1000
+ARG GROUP_ID=$USER_ID
+RUN groupadd -g $GROUP_ID jalign && \
+    useradd -u $USER_ID -g $GROUP_ID -m -s /bin/bash jalign
 
 # Create jalign working directory accessible by jalign user
 RUN mkdir -p /jalign && \
