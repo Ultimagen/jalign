@@ -58,7 +58,17 @@ RUN cd manta && wget --no-check-certificate https://github.com/Illumina/manta/ar
 
 # build executable
 FROM dev AS build
-RUN mkdir -p jalign
+# Create user (UID 1000) - for running
+RUN groupadd -g 1000 jalign && \
+    useradd -u 1000 -g 1000 -m -s /bin/bash jalign
+
+# Create jalign working directory accessible by jalign user
+RUN mkdir -p /jalign && \
+    chown jalign:jalign /jalign && \
+    chmod 755 /jalign
+
+USER jalign
+
 COPY . jalign/
 RUN cd jalign/jump_align && ./mk.sh && cp jump_align /usr/local/bin
 
