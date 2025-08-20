@@ -67,8 +67,6 @@ RUN mkdir -p /jalign && \
     chown jalign:jalign /jalign && \
     chmod 755 /jalign
 
-USER jalign
-
 COPY . jalign/
 RUN cd jalign/jump_align && ./mk.sh && cp jump_align /usr/local/bin
 
@@ -79,5 +77,6 @@ RUN cd jalign && jupyter-nbconvert --to python pair_haps.ipynb && chmod +x pair_
 
 ENV PATH="/jalign/:/jalign/jump_align:${PATH}"
 
+USER jalign
 WORKDIR /jalign
 
