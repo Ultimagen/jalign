@@ -58,7 +58,18 @@ RUN cd manta && wget --no-check-certificate https://github.com/Illumina/manta/ar
 
 # build executable
 FROM dev AS build
-RUN mkdir -p jalign
+
+# Create non root user
+ARG USER_ID=1000
+ARG GROUP_ID=$USER_ID
+RUN groupadd -g $GROUP_ID jalign && \
+    useradd -u $USER_ID -g $GROUP_ID -m -s /bin/bash jalign
+
+# Create jalign working directory accessible by jalign user
+RUN mkdir -p /jalign && \
+    chown jalign:jalign /jalign && \
+    chmod 755 /jalign
+
 COPY . jalign/
 RUN cd jalign/jump_align && ./mk.sh && cp jump_align /usr/local/bin
 
@@ -69,5 +80,6 @@ RUN cd jalign && jupyter-nbconvert --to python pair_haps.ipynb && chmod +x pair_
 
 ENV PATH="/jalign/:/jalign/jump_align:${PATH}"
 
+USER jalign
 WORKDIR /jalign
 
