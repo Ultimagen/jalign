@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build:
-    uses: Ultimagen/ugbio-utils/.github/workflows/docker-build-push.yml@upload-artifact
+    uses: Ultimagen/ugbio-utils/.github/workflows/docker-build-push.yml@main
     secrets: inherit
     with:
       git-repo: ${{ github.repository }}
