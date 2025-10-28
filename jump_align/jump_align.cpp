@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
-#include <thread>
 #include "GlobalAligner.hpp"
 #include "GlobalJumpAligner.hpp"
 #include "logging.h"
@@ -123,29 +122,11 @@ int main(int argc, char* argv[]) {
 		AlignmentResult<int> result1;
 		AlignmentResult<int> result2;
 
-#ifdef USE_THREADS
-		// jump align
-		thread t([&] {
-			jumpAlign<GlobalJumpAligner<int>,const char*,int>(
-				jump_aligner, seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], refs.ptr[1], refs.ptr[1] + refs.len[1], result);
-		});
 
-		// ref1 align
-		thread t1([&] {
-			aligner1.align(seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], result1);
-		});
-		thread t2([&] {
-			aligner2.align(seq, seq + seq_len, refs.ptr[1], refs.ptr[1] + refs.len[1], result2);
-		});
-		t.join();
-		t1.join();
-		t2.join();
-#else
 		jumpAlign<GlobalJumpAligner<int>,const char*,int>(
 			jump_aligner, seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], refs.ptr[1], refs.ptr[1] + refs.len[1], result);
 		//aligner1.align(seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], result1);
 		//aligner2.align(seq, seq + seq_len, refs.ptr[1], refs.ptr[1] + refs.len[1], result2);
-#endif		
 
 		// process jump align results
 		string apath1 = to_string(result.align1.apath);
