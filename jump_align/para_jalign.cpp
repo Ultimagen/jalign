@@ -82,6 +82,13 @@ int jalign_main(const char *query, const char *ref1, const char *ref2) {
     int n1 = strlen(ref1);
     int n2 = strlen(ref2);
 
+    printf("\n--- query (len %d) ---\n", m);
+    printf("%s\n", query);
+    printf("\n--- ref1 (len %d) ---\n", n1);
+    printf("%s\n", ref1);
+    printf("\n--- ref2 (len %d) ---\n", n2);
+    printf("%s\n", ref2);
+
     parasail_matrix_t *matrix = parasail_matrix_create("ACGT", s_match, s_mismatch);
 
     // --- First alignment ---
@@ -128,7 +135,9 @@ int jalign_main(const char *query, const char *ref1, const char *ref2) {
         }
     }
 
-    printf("Best jump at query position %d, combined score = %d\n", best_q + 1, best_score);
+    bool better = (best_score > result1->score) && (best_score > result2->score);
+    printf("Best jump at query position %d, combined score = %d, score1 %d sscore2 %d better %d\n", 
+        best_q + 1, best_score, result1->score, result2->score, better);
 
     // --- Tracebacks ---
     parasail_traceback_t *tb1 = parasail_result_get_traceback(
@@ -142,10 +151,12 @@ int jalign_main(const char *query, const char *ref1, const char *ref2) {
     reverse_string(tb2->comp);
     reverse_string(tb2->ref);
 
-    printf("\n--- Alignment 1 (pre-jump) ---\n");
+    printf("\n--- Alignment 1 (pre-jump, len %ld %ld %ld) ---\n",
+                strlen(tb1->query), strlen(tb1->comp), strlen(tb1->ref));
     printf("%s\n%s\n%s\n", tb1->query, tb1->comp, tb1->ref);
 
-    printf("\n--- Alignment 2 (post-jump) ---\n");
+    printf("\n--- Alignment 2 (post-jump, len %ld %ld %ld) ---\n",
+                strlen(tb2->query), strlen(tb2->comp), strlen(tb2->ref));
     printf("%s\n%s\n%s\n", tb2->query, tb2->comp, tb2->ref);
 
     // --- Cleanup ---
