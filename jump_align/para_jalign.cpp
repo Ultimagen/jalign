@@ -26,15 +26,6 @@ typedef struct {
 	int len[2];
 } refs_t;
 
-typedef struct {
-    int score;
-    int jumpInsertSize;
-    int jumpRange;    
-    int align1_beginPos;
-    int align2_beginPos;
-} jresult_t;
-
-
 int s_match;
 int s_mismatch;
 int s_open;
@@ -46,6 +37,12 @@ int s_jump_penalty;
 #include <string.h>
 #include <parasail.h>
 #include <parasail/matrix_lookup.h>
+
+typedef struct {
+    int jscore;
+    int score1;
+    int score2;
+} result_t;
 
 // Reverse a string in-place
 static void reverse_string(char *s) {
@@ -76,24 +73,30 @@ static int *compute_F(const char *query, int m, const char *ref, int n, const pa
     return F;
 }
 
-int jalign_main(const char *query, const char *ref1, const char *ref2) {
+result_t jalign_better(const char *query, const char *ref1, const char *ref2, char* ref2_rev) {
+
+    result_t result;
 
     int m = strlen(query);
     int n1 = strlen(ref1);
     int n2 = strlen(ref2);
 
+#ifdef DEBUG_PRINTS
     printf("\n--- query (len %d) ---\n", m);
     printf("%s\n", query);
     printf("\n--- ref1 (len %d) ---\n", n1);
     printf("%s\n", ref1);
     printf("\n--- ref2 (len %d) ---\n", n2);
     printf("%s\n", ref2);
+#endif    
 
     parasail_matrix_t *matrix = parasail_matrix_create("ACGT", s_match, s_mismatch);
 
     // --- First alignment ---
     parasail_result_t *result1 = parasail_sw_table_diag_16(query, m, ref1, n1, -s_open, -s_gap, matrix);
+#ifdef DEBUG_PRINTS
     parasail_result_t *result1_trace = parasail_sw_trace_diag_16(query, m, ref1, n1, -s_open, -s_gap, matrix);
+#endif
     const int *table1 = parasail_result_get_score_table(result1);
     int *F = (int *)calloc(m, sizeof(int));
     for (int i = 0; i < m; i++) {
@@ -108,11 +111,19 @@ int jalign_main(const char *query, const char *ref1, const char *ref2) {
     // --- Second alignment (reverse phase) ---
     char *rev_query = (char *)strdup(query);
     reverse_string(rev_query);
-    char *rev_ref2 = (char *)strdup(ref2);
-    reverse_string(rev_ref2);
+    char *rev_ref2;
+    if ( ref2_rev ) {
+        rev_ref2 = ref2_rev;
+    }
+    else {
+        rev_ref2 = (char *)strdup(ref2);
+        reverse_string(rev_ref2);
+    }
 
     parasail_result_t *result2 = parasail_sw_table_diag_16(rev_query, m, rev_ref2, n2, -s_open, -s_gap, matrix);
+#ifdef DEBUG_PRINTS
     parasail_result_t *result2_trace = parasail_sw_trace_diag_16(rev_query, m, rev_ref2, n2, -s_open, -s_gap, matrix);
+#endif
     const int *table2 = parasail_result_get_score_table(result2);
     int *B = (int *)calloc(m, sizeof(int));
     for (int i = 0; i < m; i++) {
@@ -135,10 +146,14 @@ int jalign_main(const char *query, const char *ref1, const char *ref2) {
         }
     }
 
-    bool better = (best_score > result1->score) && (best_score > result2->score);
+    result.jscore = best_score;
+    result.score1 = result1->score;
+    result.score2 = result2->score;
+
+    #ifdef DEBUG_PRINTS
     printf("Best jump at query position %d, combined score = %d, score1 %d sscore2 %d better %d\n", 
         best_q + 1, best_score, result1->score, result2->score, better);
-
+        
     // --- Tracebacks ---
     parasail_traceback_t *tb1 = parasail_result_get_traceback(
         result1_trace, query, m, ref1, n1, matrix, '|', '+', ' ');
@@ -158,42 +173,26 @@ int jalign_main(const char *query, const char *ref1, const char *ref2) {
     printf("\n--- Alignment 2 (post-jump, len %ld %ld %ld) ---\n",
                 strlen(tb2->query), strlen(tb2->comp), strlen(tb2->ref));
     printf("%s\n%s\n%s\n", tb2->query, tb2->comp, tb2->ref);
+#endif
 
     // --- Cleanup ---
     free(F);
     free(B);
     free(rev_query);
-    free(rev_ref2);
+    if ( !ref2_rev ) {
+        free(rev_ref2);
+    }
+    parasail_result_free(result1);
+    parasail_result_free(result2);
+#ifdef DEBUG_PRINTS
     parasail_traceback_free(tb1);
     parasail_traceback_free(tb2);
-    parasail_result_free(result1);
     parasail_result_free(result1_trace);
-    parasail_result_free(result2);
     parasail_result_free(result2_trace);
+#endif
     parasail_matrix_free(matrix);
 
-    return 0;
-}
-
-jresult_t jalign(char* seq, int seq_len, refs_t& refs) {
-    jresult_t result;
-    memset(&result, 0, sizeof(result));
-
-    jalign_main(seq, refs.ptr[0], refs.ptr[1]);
-
     return result;
-}
-
-string result_path(jresult_t& result, int rid) {
-    return "result_path";
-}
-
-int result_path_ref_len(jresult_t& result, int rid) {
-    return 0;
-}
-
-int result_path_read_len(jresult_t& result, int rid) {
-    return 0;
 }
 
 // main entry point. read input csv (SEQ REF1 REF2) and generate alignment output CSV
@@ -228,11 +227,7 @@ int main(int argc, char* argv[]) {
 	// loop on reading lines and process
 	int lineno = 0;
 	refs_t last_refs;
-	printf("readName\tscore\tjumpInsertSize\tjumpRange\t");
-	printf("jbegin1\tjapath1\tjreadlen1\tjreflen1\t");
-	printf("jbegin2\tjapath2\tjreadlen2\tjreflen2\t");
-	printf("score1\tbegin1\tapath1\treadlen1\treflen1\t");
-	printf("score2\tbegin2\tapath2\treadlen2\treflen2\n");
+	printf("readName\tbetter\tjscore\tscore1\tscore2\tjgain\n");
 	while ( fgets(linebuf[linebuf_index], sizeof(linebuf[0]), infile) ) {
 		lineno++;
 		char* line = linebuf[linebuf_index];
@@ -280,25 +275,14 @@ int main(int argc, char* argv[]) {
 
         // jump align
         ///
-        jresult_t result = jalign(seq, seq_len, refs);
+        result_t result = jalign_better(seq, refs.ptr[0], refs.ptr[1], NULL);
+        int score = (result.score1 > result.score2) ? result.score1 : result.score2;
+        bool better = result.jscore > score;
 
 		// process jump align results
-		string apath1 = result_path(result, 0);
-		string apath2 = result_path(result, 0);
-		printf("%s\t%d\t%d\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%d\t%d", 
-					qname,
-					result.score, result.jumpInsertSize, result.jumpRange,
-					result.align1_beginPos, apath1.c_str(), result_path_read_len(result, 0), result_path_ref_len(result, 0),
-					result.align2_beginPos, apath2.c_str(), result_path_read_len(result, 1), result_path_ref_len(result, 1)
-					);
-
-		// simple align results (stubs)
-		for ( int i = 0 ; i < 2 ; i++ ) {
-			printf("\t%d\t%d\t%s\t%d\t%d", 0, 0, "1S", 1, 1);
-		}
-
-		printf("\n");
-
+		printf("%s\t%d\t%d\t%d\t%d\t%d\n", qname, better,
+                    result.jscore, result.score1, result.score2,
+                    result.jscore - score);
 
 		// save last references, switch buffers if did not use last
 		last_refs = refs;		
