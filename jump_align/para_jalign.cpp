@@ -42,6 +42,7 @@ typedef struct {
     int jscore;
     int score1;
     int score2;
+    int jumpAt;
 } result_t;
 
 // Reverse a string in-place
@@ -149,6 +150,7 @@ result_t jalign_better(const char *query, const char *ref1, const char *ref2, ch
     result.jscore = best_score;
     result.score1 = result1->score;
     result.score2 = result2->score;
+    result.jumpAt = best_q + 1;
 
     #ifdef DEBUG_PRINTS
     printf("Best jump at query position %d, combined score = %d, score1 %d sscore2 %d better %d\n", 
@@ -227,7 +229,7 @@ int main(int argc, char* argv[]) {
 	// loop on reading lines and process
 	int lineno = 0;
 	refs_t last_refs;
-	printf("readName\tbetter\tjscore\tscore1\tscore2\tjgain\n");
+	printf("readName\tbetter\tjscore\tscore1\tscore2\tjgain\tsize1\tsize2\n");
 	while ( fgets(linebuf[linebuf_index], sizeof(linebuf[0]), infile) ) {
 		lineno++;
 		char* line = linebuf[linebuf_index];
@@ -280,9 +282,9 @@ int main(int argc, char* argv[]) {
         bool better = result.jscore > score;
 
 		// process jump align results
-		printf("%s\t%d\t%d\t%d\t%d\t%d\n", qname, better,
+		printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", qname, better,
                     result.jscore, result.score1, result.score2,
-                    result.jscore - score);
+                    result.jscore - score, result.jumpAt, seq_len - result.jumpAt);
 
 		// save last references, switch buffers if did not use last
 		last_refs = refs;		

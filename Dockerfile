@@ -42,7 +42,8 @@ RUN apt-get update && \
     ssh \
     zsh \
     wget \
-    unzip
+    unzip \
+    libparasail-dev
 
 RUN apt-get update && \
   apt-get -y install --no-install-recommends \
@@ -71,10 +72,11 @@ RUN mkdir -p /jalign && \
     chmod 755 /jalign
 
 COPY . jalign/
-RUN cd jalign/jump_align && ./mk.sh && cp jump_align /usr/local/bin
+RUN cd jalign/jump_align && ./mk.sh && cp jump_align /usr/local/bin && cp para_jalign /usr/local/bin
 
 # prepare python stuff
 RUN cd jalign && jupyter-nbconvert --to python cnv_realign.ipynb && chmod +x cnv_realign.py
+RUN cd jalign && jupyter-nbconvert --to python dup_cnv_realign.ipynb && chmod +x dup_cnv_realign.py
 RUN cd jalign && jupyter-nbconvert --to python sa_walker.ipynb && chmod +x sa_walker.py
 RUN cd jalign && jupyter-nbconvert --to python pair_haps.ipynb && chmod +x pair_haps.py
 
