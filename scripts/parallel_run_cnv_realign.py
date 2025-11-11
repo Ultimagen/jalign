@@ -8,7 +8,10 @@ from joblib import Parallel, delayed
 
 
 def jalign_cnv_realign(input_cram,range_bed,ref_fasta,output_prefix,mode,min_mismatches):
-    cmd = f"python /jalign/cnv_realign.py {input_cram} {range_bed} {ref_fasta} {output_prefix} {mode} {min_mismatches}"
+    if mode == "DEL":
+        cmd = f"python /jalign/cnv_realign.py {input_cram} {range_bed} {ref_fasta} {output_prefix} {mode} {min_mismatches}"
+    elif mode == "DUP":
+        cmd = f"python /jalign/dup_cnv_realign.py {input_cram} {range_bed} {ref_fasta} {output_prefix} {mode} {min_mismatches}"
     print(cmd)
     subprocess.check_output(cmd, shell=True)
 
