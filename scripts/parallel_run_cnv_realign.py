@@ -51,6 +51,8 @@ cmd = f"cat {args.out_folder}/*.jalign.bed > {out_DEL_jalign_merged_results_fold
 print(cmd)
 subprocess.check_output(cmd, shell=True)
 
+output = subprocess.check_output(f"ls -1 {args.out_folder}/")
+print(output)
 # merge bam files
 header_bam = subprocess.check_output(f"ls -1 {args.out_folder}/*.bam | head -1",shell=True, text=True).strip()
 print(header_bam)
