@@ -125,8 +125,8 @@ int main(int argc, char* argv[]) {
 
 		jumpAlign<GlobalJumpAligner<int>,const char*,int>(
 			jump_aligner, seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], refs.ptr[1], refs.ptr[1] + refs.len[1], result);
-		//aligner1.align(seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], result1);
-		//aligner2.align(seq, seq + seq_len, refs.ptr[1], refs.ptr[1] + refs.len[1], result2);
+		aligner1.align(seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], result1);
+		aligner2.align(seq, seq + seq_len, refs.ptr[1], refs.ptr[1] + refs.len[1], result2);
 
 		// process jump align results
 		string apath1 = to_string(result.align1.apath);
@@ -142,7 +142,9 @@ int main(int argc, char* argv[]) {
 		for ( int i = 0 ; i < 2 ; i++ ) {
 			AlignmentResult<int>& result = !i ? result1 : result2;
 			string apath = to_string(result.align.apath);
-			printf("\t%d\t%d\t%s\t%d\t%d", 0, 0, "1S", 1, 1);
+			printf("\t%d\t%d\t%s\t%d\t%d", 
+						result.score,
+						result.align.beginPos, apath.c_str(), apath_read_length(result.align.apath), apath_ref_length(result.align.apath));
 		}
 
 		printf("\n");

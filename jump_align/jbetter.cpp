@@ -505,8 +505,11 @@ int main(int argc, char** argv) {
         }
 
         // Fetch reads crossing region start and end
+        std::cerr << "fetching start reads, from " << tid << " " << region.start << std::endl;
         auto start_reads = fetch_reads_at(idx, fp, hdr, tid, region.start, fai);
+        std::cerr << "fetching end reads, from " << tid << " " << (region.end - 1) << std::endl;
         auto end_reads   = fetch_reads_at(idx, fp, hdr, tid, region.end - 1, fai);
+        std::cerr << start_reads.size() << " start reads, " << end_reads.size() << " end reads" << std::endl;
 
         // Combine and deduplicate
         auto start_span = compute_span(start_reads, region.start);
