@@ -74,7 +74,7 @@ static int *compute_F(const char *query, int m, const char *ref, int n, const pa
     return F;
 }
 
-result_t jalign_better(const char *query, const char *ref1, const char *ref2, char* ref2_rev) {
+result_t jalign_better(const char *query, const char *ref1, const char *ref2) {
 
     result_t result;
 
@@ -112,14 +112,8 @@ result_t jalign_better(const char *query, const char *ref1, const char *ref2, ch
     // --- Second alignment (reverse phase) ---
     char *rev_query = (char *)strdup(query);
     reverse_string(rev_query);
-    char *rev_ref2;
-    if ( ref2_rev ) {
-        rev_ref2 = ref2_rev;
-    }
-    else {
-        rev_ref2 = (char *)strdup(ref2);
-        reverse_string(rev_ref2);
-    }
+    char *rev_ref2 = (char *)strdup(ref2);
+    reverse_string(rev_ref2);
 
     parasail_result_t *result2 = parasail_sw_table_diag_16(rev_query, m, rev_ref2, n2, -s_open, -s_gap, matrix);
 #ifdef DEBUG_PRINTS
@@ -181,9 +175,7 @@ result_t jalign_better(const char *query, const char *ref1, const char *ref2, ch
     free(F);
     free(B);
     free(rev_query);
-    if ( !ref2_rev ) {
-        free(rev_ref2);
-    }
+    free(rev_ref2);
     parasail_result_free(result1);
     parasail_result_free(result2);
 #ifdef DEBUG_PRINTS
@@ -203,7 +195,7 @@ int main(int argc, char* argv[]) {
 	// check args
 	if ( argc < 7 ) {
 		fprintf(stderr, "wrong score arguments:\n");
-		fprintf(stderr, "usage: %s <match> <mismatch> <open> <extend> <offedge> <jump> [input_file]\n", argv[0]);
+		fprintf(stderr, "usage: %s <match> <mismatch> <open> <extend> <do_del> <jump> [input_file]\n", argv[0]);
 		exit(-1);
 	}
 
@@ -212,6 +204,7 @@ int main(int argc, char* argv[]) {
     s_mismatch = atoi(argv[2]);
     s_open = atoi(argv[3]);
     s_gap = atoi(argv[4]);
+    bool do_del = atoi(argv[5]) > 0;
     s_jump_penalty = atoi(argv[6]);
 
 	// open input file
@@ -229,7 +222,11 @@ int main(int argc, char* argv[]) {
 	// loop on reading lines and process
 	int lineno = 0;
 	refs_t last_refs;
-	printf("readName\tbetter\tjscore\tscore1\tscore2\tjgain\tsize1\tsize2\n");
+	printf("readName\tbetter\tjscore\tscore1\tscore2\tjgain\tsize1\tsize2");
+    if ( do_del ) {
+	    printf("\tdjscore\tdscore1\tdscore2\tdjgain\tdsize1\tdsize2");
+    }
+    printf("\n");
 	while ( fgets(linebuf[linebuf_index], sizeof(linebuf[0]), infile) ) {
 		lineno++;
 		char* line = linebuf[linebuf_index];
@@ -277,14 +274,23 @@ int main(int argc, char* argv[]) {
 
         // jump align
         ///
-        result_t result = jalign_better(seq, refs.ptr[0], refs.ptr[1], NULL);
+        result_t result = jalign_better(seq, refs.ptr[0], refs.ptr[1]);
         int score = (result.score1 > result.score2) ? result.score1 : result.score2;
         bool better = result.jscore > score;
 
 		// process jump align results
-		printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", qname, better,
+		printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d", qname, better,
                     result.jscore, result.score1, result.score2,
                     result.jscore - score, result.jumpAt, seq_len - result.jumpAt);
+        if ( do_del ) {
+            result = jalign_better(seq, refs.ptr[1], refs.ptr[0]);
+            score = (result.score1 > result.score2) ? result.score1 : result.score2;
+            better = result.jscore > score;
+		    printf("\t%d\t%d\t%d\t%d\t%d\t%d", 
+                    result.jscore, result.score1, result.score2,
+                    result.jscore - score, result.jumpAt, seq_len - result.jumpAt);
+        }
+        printf("\n");
 
 		// save last references, switch buffers if did not use last
 		last_refs = refs;		
@@ -294,7 +300,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	return 0;
-	
+
 }
 
 #ifdef TEST_CODE
