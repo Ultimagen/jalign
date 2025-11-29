@@ -260,6 +260,7 @@ def process_cnv(chrom, start, end, flog):
     header_seen = False
     realignments = []
     rheader = []
+    flog.write(f">>> alignments: {chrom}:{start}-{end}\n")
     for alignment, read in zip(alignments[0].split("\n"), [None, *reads_in_order]):
         if flog:
             flog.write(alignment + "\n")
@@ -271,6 +272,8 @@ def process_cnv(chrom, start, end, flog):
             in1 = read.qname in reads_in_ref[0]
             in2 = read.qname in reads_in_ref[1]
             realignments.append([read, refs[0][0], refs[1][0], a, in1, in2])
+    flog.write(f"<<< alignments: {chrom}:{start}-{end}\n")
+
     return (rheader, realignments, nlines)    
 
 # main loop starts here
