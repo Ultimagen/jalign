@@ -31,7 +31,7 @@ MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT = 30
 MIN_GAP_LEN = 30
 MAX_READS_PER_CNV = 4000
 
-MAX_SCORE_FRACTION = 0.95
+MAX_SCORE_FRACTION = 0.9
 # tmp file (prefix) for communicating w/ C aligner
 # longer tmp names contain the cnv region itself in the filename
 tmp = "/tmp/jump_align_input." + str(os.getpid())
