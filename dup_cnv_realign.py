@@ -186,7 +186,7 @@ def accept_read(read):
 def process_cnv(chrom, start, end, flog):
 
     if flog:
-        flog.write(">>> %s:%d-%d\n" % (chrom, start, end))
+        flog.write("\n>>> %s:%d-%d\n" % (chrom, start, end))
 
     # get all reads that cross the two cnv edges
     reads = dict()
@@ -261,7 +261,7 @@ def process_cnv(chrom, start, end, flog):
     rheader = []
     for alignment, read in zip(alignments[0].split("\n"), [None, *reads_in_order]):
         if flog:
-            flog.write(alignment)
+            flog.write(alignment + "\n")
         if not header_seen:
             rheader = alignment.split("\t")
             header_seen = True;
