@@ -31,6 +31,7 @@ MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT = 30
 MIN_GAP_LEN = 30
 MAX_READS_PER_CNV = 4000
 
+MAX_SCORE_FRACTION = 0.95
 # tmp file (prefix) for communicating w/ C aligner
 # longer tmp names contain the cnv region itself in the filename
 tmp = "/tmp/jump_align_input." + str(os.getpid())
@@ -317,13 +318,18 @@ with open(OUT_BED, "w") as out_bed, open(OUT_LOG, "w") as flog:
                         = map(int, (score,jumpInsertSize,jumpRange,jbegin1,jreadlen1,jreflen1,jbegin2,jreadlen2,jreflen2,dscore,djumpInsertSize,djumpRange,djbegin1,djreadlen1,djreflen1,djbegin2,djreadlen2,djreflen2,score1,begin1,readlen1,reflen1,score2,begin2,readlen2,reflen2))
 
                     # jump score better?
-                    if score > 0 and score > max(score1, score2) + MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
-                        if min(jreadlen1, jreadlen1) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
-                            jump_better += 1
+                    minimal_score = MAX_SCORE_FRACTION * (jreadlen1 + jreadlen2) *MATCH_SCORE
+                    if score > 0 and score > max(score1, score2) + MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT :
+                        if score > minimal_score:
+                            if min(jreadlen1, jreadlen2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
+                                jump_better += 1
+
+                    minimal_score = MAX_SCORE_FRACTION * (djreadlen1 + djreadlen2) *MATCH_SCORE
 
                     if dscore > 0 and dscore > max(score1, score2) + MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
-                        if min(djreadlen1, djreadlen1) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
-                            djump_better += 1
+                        if dscore > minimal_score:
+                            if min(djreadlen1, djreadlen2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
+                                djump_better += 1
 
                 if TOOL == "para_align":
                     qname1, better, score, score1, score2, jgain, size1, size2, \
