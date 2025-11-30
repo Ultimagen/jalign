@@ -180,7 +180,7 @@ def is_substential_softclipped(read):
 def accept_read(read):
     if MIN_MISMATCHES <= 0:
         return True
-    sc = count_softclip_mismatches(read, fasta_file)
+    #sc = count_softclip_mismatches(read, fasta_file)
     nm = count_nm_mismatches(read)
     return nm >= MIN_MISMATCHES
 
