@@ -182,7 +182,7 @@ def accept_read(read):
         return True
     sc = count_softclip_mismatches(read, fasta_file)
     nm = count_nm_mismatches(read)
-    return (sc + nm) >= MIN_MISMATCHES
+    return nm >= MIN_MISMATCHES
 
 # process a single cnv region (essentially a line from an input bed file)
 def process_cnv(chrom, start, end, flog):
