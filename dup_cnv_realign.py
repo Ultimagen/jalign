@@ -23,7 +23,7 @@ EXTEND_SCORE = -1
 JUMP_SCORE = 0
 
 # parametrization
-MIN_MISMATCHES = 30
+MIN_MISMATCHES = 5
 SOFTCLIP_THRESHOLD = 30
 FETCH_READ_PADDING = 500
 FETCH_REF_PADDING = 0
@@ -180,7 +180,7 @@ def is_substential_softclipped(read):
 def accept_read(read):
     if MIN_MISMATCHES <= 0:
         return True
-    sc = count_softclip_mismatches(read, fasta_file);
+    sc = count_softclip_mismatches(read, fasta_file)
     nm = count_nm_mismatches(read)
     return (sc + nm) >= MIN_MISMATCHES
 
@@ -201,9 +201,7 @@ def process_cnv(chrom, start, end, flog):
         rmax = loc + FETCH_READ_PADDING
         # print("fetching ... ", max(0, loc - FETCH_READ_PADDING), loc + FETCH_READ_PADDING)
         for read in reads_file.fetch(chrom, max(0, loc - FETCH_READ_PADDING), loc + FETCH_READ_PADDING):
-            if not is_substential_softclipped(read):
-                continue
-            if not accept_read(read):
+            if not is_substential_softclipped(read) and not accept_read(read):
                 continue
             #if mode == "DUP" and read.is_supplementary:
             #    continue
