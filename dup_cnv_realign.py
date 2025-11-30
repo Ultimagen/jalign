@@ -32,6 +32,7 @@ MIN_GAP_LEN = 30
 MAX_READS_PER_CNV = 4000
 
 MAX_SCORE_FRACTION = 0.9
+STRINGENT_MAX_SCORE_FRACTION = 0.95
 # tmp file (prefix) for communicating w/ C aligner
 # longer tmp names contain the cnv region itself in the filename
 tmp = "/tmp/jump_align_input." + str(os.getpid())
@@ -302,7 +303,8 @@ with open(OUT_BED, "w") as out_bed, open(OUT_LOG, "w") as flog:
             # variables with a d prefix relate to DEL
             jump_better = 0
             djump_better = 0
-
+            jump_much_better = 0
+            djump_much_better = 0
             for realignment in realignments:
                 in_ref = [False, False]
                 read, ref1_start, ref2_start, ainfo, in_ref[0], in_ref[1] = realignment
@@ -322,17 +324,22 @@ with open(OUT_BED, "w") as out_bed, open(OUT_LOG, "w") as flog:
 
                     # jump score better?
                     minimal_score = MAX_SCORE_FRACTION * (jreadlen1 + jreadlen2) *MATCH_SCORE
+                    stringent_score = STRINGENT_MAX_SCORE_FRACTION * (jreadlen1 + jreadlen2) *MATCH_SCORE
                     if score > 0 and score > max(score1, score2) + MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT :
-                        if score > minimal_score:
-                            if min(jreadlen1, jreadlen2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
+                        if min(jreadlen1, jreadlen2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
+                            if score > minimal_score:
                                 jump_better += 1
+                            if score > stringent_score:
+                                jump_much_better += 1
 
                     minimal_score = MAX_SCORE_FRACTION * (djreadlen1 + djreadlen2) *MATCH_SCORE
-
+                    stringent_score = STRINGENT_MAX_SCORE_FRACTION * (djreadlen1 + djreadlen2) *MATCH_SCORE
                     if dscore > 0 and dscore > max(score1, score2) + MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
-                        if dscore > minimal_score:
-                            if min(djreadlen1, djreadlen2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
+                        if min(djreadlen1, djreadlen2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
+                            if dscore > minimal_score:
                                 djump_better += 1
+                            if dscore > stringent_score:
+                                djump_much_better += 1
 
                 if TOOL == "para_align":
                     qname1, better, score, score1, score2, jgain, size1, size2, \
@@ -350,7 +357,7 @@ with open(OUT_BED, "w") as out_bed, open(OUT_LOG, "w") as flog:
                             djump_better += 1
 
             
-            outline = line[:-1] + ("\t%d\t%d\n" % (jump_better, djump_better))
+            outline = line[:-1] + ("\t%d\t%d\t%d\t%d\n" % (jump_better, djump_better, jump_much_better, djump_much_better))
             out_bed.write(outline)
             print(outline.strip())
             del outline
