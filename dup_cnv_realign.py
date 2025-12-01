@@ -123,6 +123,8 @@ def count_nm_mismatches(read):
     """
     try:
         nm_tag = read.get_tag("NM")
+        non_mismatches = [ x for x in read.cigartuples if x[0]>0 and x[0]<4]
+        nm_tag -= sum([ x[1] for x in non_mismatches if x[0] != 4])
     except KeyError:
         return None
 
@@ -178,9 +180,10 @@ def is_substential_softclipped(read):
 
 # a filtering function to see if a read is worth "accepting" into the set to reads to consider
 def accept_read(read):
+    if read.is_duplicate:
+        return False
     if MIN_MISMATCHES <= 0:
         return True
-    #sc = count_softclip_mismatches(read, fasta_file)
     nm = count_nm_mismatches(read)
     return nm >= MIN_MISMATCHES
 
@@ -201,14 +204,16 @@ def process_cnv(chrom, start, end, flog):
         rmax = loc + FETCH_READ_PADDING
         # print("fetching ... ", max(0, loc - FETCH_READ_PADDING), loc + FETCH_READ_PADDING)
         for read in reads_file.fetch(chrom, max(0, loc - FETCH_READ_PADDING), loc + FETCH_READ_PADDING):
+            if read.is_duplicate:
+                continue
             if not is_substential_softclipped(read) and not accept_read(read):
                 continue
             #if mode == "DUP" and read.is_supplementary:
             #    continue
-            reads[read.qname] = read
+            reads[read.query_name] = read
             rmin = min(rmin, read.reference_start)
             rmax = max(rmax, read.reference_end)
-            reads_in_ref[ref_id].add(read.qname)
+            reads_in_ref[ref_id].add(read.query_name)
         refs_extents.append([rmin, rmax])
         ref_id += 1
         
@@ -268,8 +273,8 @@ def process_cnv(chrom, start, end, flog):
             header_seen = True;
         else:
             a = alignment.split("\t")
-            in1 = read.qname in reads_in_ref[0]
-            in2 = read.qname in reads_in_ref[1]
+            in1 = read.query_name in reads_in_ref[0]
+            in2 = read.query_name in reads_in_ref[1]
             realignments.append([read, refs[0][0], refs[1][0], a, in1, in2])
     flog.write(f"<<< alignments: {chrom}:{start}-{end}\n")
 
