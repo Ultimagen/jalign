@@ -46,7 +46,7 @@ with pysam.VariantFile(args.input_vcf, "r") as vcf_in:
     with pysam.VariantFile(args.output_vcf, "w", header=vcf_in.header) as vcf_out:
 
         for nrecord,record in enumerate(vcf_in):
-            if nrecord % 1000 == 0:
+            if nrecord % 200 == 0:
                 if temp_bed_file is not None:
                     temp_bed_file.close()
                     bed_files.append(temp_bed_file.name)
