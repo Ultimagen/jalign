@@ -10,7 +10,6 @@ import tempfile
 import tqdm.auto as tqdm
 from joblib import Parallel, delayed
 
-import pandas as pd
 def jalign_cnv_realign(input_cram,range_bed,ref_fasta,output_prefix,min_mismatches):
     cmd = f"python /jalign/dup_cnv_realign.py {input_cram} {range_bed} {ref_fasta} {output_prefix} DUP {min_mismatches}"
     print(cmd)
