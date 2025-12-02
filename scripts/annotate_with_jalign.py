@@ -67,7 +67,7 @@ Parallel(n_jobs=num_jobs)(delayed(jalign_cnv_realign)(args.input_cram,range_bed,
                           for range_bed in tqdm.tqdm(bed_files))
 with open(pjoin(tmpdirname, "jalign.bed"),'w') as merged_bed_file:
     for bed_file in bed_files:
-        with open(bed_file,'r') as bf:
+        with open(f"{bed_file}.jalign.bed",'r') as bf:
             for line in bf:
                 merged_bed_file.write(line)
 
