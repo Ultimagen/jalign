@@ -85,9 +85,9 @@ with pysam.VariantFile(args.input_vcf, "r") as vcf_in:
             # get corresponding annotations
             ann_row = annotated_df[nrecord].strip().split("\t")
             # add annotations to record
-            record.info['JALIGN_DUP_SUPPORT'] = ann_row[annotated_df_columns['JALIGN_DUP_SUPPORT']]
-            record.info['JALIGN_DEL_SUPPORT'] = ann_row[annotated_df_columns['JALIGN_DEL_SUPPORT']]
-            record.info['JALIGN_DUP_SUPPORT_STRONG'] = ann_row[annotated_df_columns['JALIGN_DUP_SUPPORT_STRONG']]
-            record.info['JALIGN_DEL_SUPPORT_STRONG'] = ann_row[annotated_df_columns['JALIG`N_DEL_SUPPORT_STRONG']]
+            record.info['JALIGN_DUP_SUPPORT'] = int(ann_row[annotated_df_columns['JALIGN_DUP_SUPPORT']])
+            record.info['JALIGN_DEL_SUPPORT'] = int(ann_row[annotated_df_columns['JALIGN_DEL_SUPPORT']])
+            record.info['JALIGN_DUP_SUPPORT_STRONG'] = int(ann_row[annotated_df_columns['JALIGN_DUP_SUPPORT_STRONG']])
+            record.info['JALIGN_DEL_SUPPORT_STRONG'] = int(ann_row[annotated_df_columns['JALIGN_DEL_SUPPORT_STRONG']])
             vcf_out.write(record)
 
