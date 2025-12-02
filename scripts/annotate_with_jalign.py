@@ -72,8 +72,9 @@ with open(pjoin(tmpdirname, "jalign.bed"),'w') as merged_bed_file:
             for line in bf:
                 merged_bed_file.write(line)
 
-annotated_df = pd.read_csv(merged_bed_file.name, sep='\t', header=None)
-annotated_df.columns = ['chrom','start','end','JALIGN_DEL_SUPPER','JALIGN_DUP_SUPPORT','JALIGN_DEL_SUPPORT_STRONG','JALIGN_DUP_SUPPORT_STRONG']
+annotated_df = open(merged_bed_file.name).readlines()
+annotated_df_columns = dict(zip(['chrom','start','end','JALIGN_DEL_SUPPER','JALIGN_DUP_SUPPORT','JALIGN_DEL_SUPPORT_STRONG','JALIGN_DUP_SUPPORT_STRONG'], range(7)))
+
 with pysam.VariantFile(args.input_vcf, "r") as vcf_in:
     header = vcf_in.header
     header.info.add("JALIGN_DUP_SUPPORT", 1, 'Integer', 'Number of reads supporting the duplication via jump alignment')
@@ -83,11 +84,11 @@ with pysam.VariantFile(args.input_vcf, "r") as vcf_in:
     with pysam.VariantFile(args.output_vcf, "w", header=vcf_in.header) as vcf_out:
         for nrecord,record in enumerate(vcf_in):
             # get corresponding annotations
-            ann_row = annotated_df.iloc[nrecord]
+            ann_row = annotated_df[nrecord].strip().split("\t")
             # add annotations to record
-            record.info['JALIGN_DUP_SUPPORT'] = ann_row['JALIGN_DUP_SUPPORT']
-            record.info['JALIGN_DEL_SUPPORT'] = ann_row['JALIGN_DEL_SUPPORT']
-            record.info['JALIGN_DUP_SUPPORT_STRONG'] = ann_row['JALIGN_DUP_SUPPORT_STRONG']
-            record.info['JALIGN_DEL_SUPPORT_STRONG'] = ann_row['JALIG`N_DEL_SUPPORT_STRONG']
+            record.info['JALIGN_DUP_SUPPORT'] = ann_row[annotated_df_columns['JALIGN_DUP_SUPPORT']]
+            record.info['JALIGN_DEL_SUPPORT'] = ann_row[annotated_df_columns['JALIGN_DEL_SUPPORT']]
+            record.info['JALIGN_DUP_SUPPORT_STRONG'] = ann_row[annotated_df_columns['JALIGN_DUP_SUPPORT_STRONG']]
+            record.info['JALIGN_DEL_SUPPORT_STRONG'] = ann_row[annotated_df_columns['JALIG`N_DEL_SUPPORT_STRONG']]
             vcf_out.write(record)
 
