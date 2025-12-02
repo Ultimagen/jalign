@@ -243,8 +243,6 @@ def process_cnv(chrom, start, end, flog):
             if subsample_ratio < 1.0:
                 if random.random() > subsample_ratio:
                     continue
-            if not accept_read(read):
-                continue
             reads_in_order.append(read)
             if not ref_emitted:
                 line = read.qname + "\t" + read.seq + "\t" + refs[1][1] + "\t" + refs[0][1] + "\n"
