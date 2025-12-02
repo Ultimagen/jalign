@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+ 
 import argparse
 import subprocess
 import os
 from os.path import join as pjoin
+from os.path import dirname
 import pysam
 import tempfile
 from joblib import Parallel, delayed
@@ -17,7 +20,6 @@ parser = argparse.ArgumentParser(prog="annotate_with_jalign.py",
                                 description="adds jump alignment annotations to the VCF")
 parser.add_argument("--input_cram", help="input cram file",required=True,type=str)
 parser.add_argument("--ref_fasta", help="reference fasta file", required=False, type=str)
-parser.add_argument("--sample_name", help="sample_name", required=True, type=str)
 parser.add_argument("--input_vcf", help="input_file", required=True, type=str)
 parser.add_argument("--output_vcf", help="output_file", required=True, type=str)
 
@@ -26,17 +28,18 @@ parser.add_argument("-v","--verbose",type=bool,required=False,default=True,help=
 
 args = parser.parse_args()
 
-if os.path.exists(args.out_folder):
+out_folder = dirname(args.output_vcf)
+if os.path.exists(out_folder):
     print(f"output folder exists: {args.out_folder}")
 else:
-    os.makedirs(args.out_folder)
+    os.makedirs(out_folder)
     print(f"created output folder: {args.out_folder}")
 
 bed_files = []
 temp_bed_file = None
 
 # Create a temporary directory that persists
-tmpdirname = tempfile.mkdtemp()
+tmpdirname = tempfile.mkdtemp(dir=out_folder)
 print(f"Using temporary directory: {tmpdirname}")
 with pysam.VariantFile(args.input_vcf, "r") as vcf_in:
     with pysam.VariantFile(args.output_vcf, "w", header=vcf_in.header) as vcf_out:
