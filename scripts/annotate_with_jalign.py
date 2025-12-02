@@ -22,7 +22,7 @@ parser.add_argument("--input_cram", help="input cram file",required=True,type=st
 parser.add_argument("--ref_fasta", help="reference fasta file", required=False, type=str)
 parser.add_argument("--input_vcf", help="input_file", required=True, type=str)
 parser.add_argument("--output_vcf", help="output_file", required=True, type=str)
-
+parser.add_argument("--min_mismatches", help="minimum mismatches for jalign", required=False, type=int, default=5)
 parser.add_argument("--num_jobs", help="number of jobs run in parallel", required=True, type=str)
 parser.add_argument("-v","--verbose",type=bool,required=False,default=True,help="""Whether to print debug messages (default: True)""",)
 
