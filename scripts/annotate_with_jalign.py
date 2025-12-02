@@ -7,9 +7,10 @@ from os.path import join as pjoin
 from os.path import dirname
 import pysam
 import tempfile
+import tqdm.auto as tqdm
 from joblib import Parallel, delayed
 
-
+import pandas as pd
 def jalign_cnv_realign(input_cram,range_bed,ref_fasta,output_prefix,min_mismatches):
     cmd = f"python /jalign/dup_cnv_realign.py {input_cram} {range_bed} {ref_fasta} {output_prefix} DUP {min_mismatches}"
     print(cmd)
@@ -63,48 +64,30 @@ with pysam.VariantFile(args.input_vcf, "r") as vcf_in:
 
 # run jalign
 num_jobs = args.num_jobs
-Parallel(n_jobs=num_jobs)(delayed(jalign_cnv_realign)(args.input_cram,range_bed,args.ref_fasta,pjoin(tmpdirname,os.path.basename(range_bed)+'.jalign'),args.min_mismatches) for range_bed in bed_files)
+Parallel(n_jobs=num_jobs)(delayed(jalign_cnv_realign)(args.input_cram,range_bed,args.ref_fasta,pjoin(tmpdirname,os.path.basename(range_bed)+'.jalign'),args.min_mismatches) 
+                          for range_bed in tqdm.tqdm(bed_files))
 with open(pjoin(tmpdirname, "jalign.bed"),'w') as merged_bed_file:
     for bed_file in bed_files:
         with open(bed_file,'r') as bf:
             for line in bf:
                 merged_bed_file.write(line)
 
-# out_DEL_jalign_merged_results_folder = pjoin(args.out_folder,'DEL_jalign_merged_results')
-# os.makedirs(out_DEL_jalign_merged_results_folder)
+annotated_df = pd.read_csv(merged_bed_file.name, sep='\t', header=None)
+annotated_df.columns = ['chrom','start','end','JALIGN_DEL_SUPPER','JALIGN_DUP_SUPPORT','JALIGN_DEL_SUPPORT_STRONG','JALIGN_DUP_SUPPORT_STRONG']
+with pysam.VariantFile(args.input_vcf, "r") as vcf_in:
+    header = vcf_in.header
+    header.info.add("JALIGN_DUP_SUPPORT", 1, 'Integer', 'Number of reads supporting the duplication via jump alignment')
+    header.info.add("JALIGN_DEL_SUPPORT", 1, 'Integer', 'Number of reads supporting the deletion via jump alignment')
+    header.info.add("JALIGN_DUP_SUPPORT_STRONG", 1, 'Integer', 'Number of reads strongly supporting the duplication via jump alignment')
+    header.info.add("JALIGN_DEL_SUPPORT_STRONG", 1, 'Integer', 'Number of reads strongly supporting the deletion via jump alignment')    
+    with pysam.VariantFile(args.output_vcf, "w", header=vcf_in.header) as vcf_out:
+        for nrecord,record in enumerate(vcf_in):
+            # get corresponding annotations
+            ann_row = annotated_df.iloc[nrecord]
+            # add annotations to record
+            record.info['JALIGN_DUP_SUPPORT'] = ann_row['JALIGN_DUP_SUPPORT']
+            record.info['JALIGN_DEL_SUPPORT'] = ann_row['JALIGN_DEL_SUPPORT']
+            record.info['JALIGN_DUP_SUPPORT_STRONG'] = ann_row['JALIGN_DUP_SUPPORT_STRONG']
+            record.info['JALIGN_DEL_SUPPORT_STRONG'] = ann_row['JALIG`N_DEL_SUPPORT_STRONG']
+            vcf_out.write(record)
 
-# # aggregate bed file
-# cmd = f"cat {args.out_folder}/*.jalign.bed > {out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.bed"
-# print(cmd)
-# subprocess.check_output(cmd, shell=True)
-
-# output = subprocess.check_output(f"ls -1 {args.out_folder}/")
-# print(output)
-# # merge bam files
-# header_bam = subprocess.check_output(f"ls -1 {args.out_folder}/*.bam | head -1",shell=True, text=True).strip()
-# print(header_bam)
-
-# cmd = f"samtools view -H {header_bam} > {out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.sam"
-# print(cmd)
-# subprocess.check_output(cmd, shell=True)
-
-# cmd = f"cat {args.out_folder}/*sam | grep -v -E \"^@\" >> {out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.sam"
-# print(cmd)
-# subprocess.check_output(cmd, shell=True)
-
-# cmd = f"samtools sort --threads {args.num_jobs} {out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.sam > {out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.bam"
-# print(cmd)
-# subprocess.check_output(cmd, shell=True)
-
-# cmd = f"samtools index {out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.bam"
-# print(cmd)
-# subprocess.check_output(cmd, shell=True)
-
-# cmd = f"rm {out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.sam"
-# print(cmd)
-# subprocess.check_output(cmd, shell=True)
-
-# print("output files are:")
-# print(f"{out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.bed")
-# print(f"{out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.bam")
-# print(f"{out_DEL_jalign_merged_results_folder}/{args.sample_name}.DEL.jalign.bam.bai")
