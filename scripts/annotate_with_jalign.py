@@ -10,7 +10,7 @@ import tempfile
 from joblib import Parallel, delayed
 
 
-def jalign_cnv_realign(input_cram,range_bed,ref_fasta,output_prefix,mode,min_mismatches):
+def jalign_cnv_realign(input_cram,range_bed,ref_fasta,output_prefix,min_mismatches):
     cmd = f"python /jalign/dup_cnv_realign.py {input_cram} {range_bed} {ref_fasta} {output_prefix} DUP {min_mismatches}"
     print(cmd)
     subprocess.check_output(cmd, shell=True)
