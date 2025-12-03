@@ -4,7 +4,7 @@ import argparse
 import subprocess
 import os
 from os.path import join as pjoin
-from os.path import dirname
+from os.path import dirname, absname
 import pysam
 import tempfile
 import tqdm.auto as tqdm
@@ -28,7 +28,7 @@ parser.add_argument("-v","--verbose",type=bool,required=False,default=True,help=
 
 args = parser.parse_args()
 
-out_folder = dirname(args.output_vcf)
+out_folder = dirname(absname(args.output_vcf))
 
 if os.path.exists(out_folder):
     print(f"output folder exists: {out_folder}")
