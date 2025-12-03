@@ -294,6 +294,8 @@ with open(OUT_BED, "w") as out_bed, open(OUT_LOG, "w") as flog:
 
             # check for valid end locus 
             if bed_end + FETCH_READ_PADDING > chrom_sizes[bed_chrom]:
+                outline = line[:-1] + ("\t%d\t%d\t%d\t%d\n" % (0, 0, 0, 0))
+                out_bed.write(outline)
                 continue
 
             # process this line
