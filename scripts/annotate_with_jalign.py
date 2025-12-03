@@ -72,7 +72,7 @@ with open(pjoin(tmpdirname, "jalign.bed"),'w') as merged_bed_file:
                 merged_bed_file.write(line)
 
 annotated_df = open(merged_bed_file.name).readlines()
-annotated_df_columns = dict(zip(['chrom','start','end','JALIGN_DEL_SUPPER','JALIGN_DUP_SUPPORT','JALIGN_DEL_SUPPORT_STRONG','JALIGN_DUP_SUPPORT_STRONG'], range(7)))
+annotated_df_columns = dict(zip(['chrom','start','end','JALIGN_DEL_SUPPORT','JALIGN_DUP_SUPPORT','JALIGN_DEL_SUPPORT_STRONG','JALIGN_DUP_SUPPORT_STRONG'], range(7)))
 
 with pysam.VariantFile(args.input_vcf, "r") as vcf_in:
     header = vcf_in.header
