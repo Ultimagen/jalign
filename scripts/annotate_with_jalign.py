@@ -7,7 +7,6 @@ from os.path import join as pjoin
 from os.path import dirname, abspath
 import pysam
 import tempfile
-import tqdm.auto as tqdm
 from joblib import Parallel, delayed
 
 def jalign_cnv_realign(input_cram,range_bed,ref_fasta,output_prefix,min_mismatches):
@@ -63,8 +62,9 @@ with pysam.VariantFile(args.input_vcf, "r") as vcf_in:
 
 # run jalign
 num_jobs = args.num_jobs
-Parallel(n_jobs=num_jobs)(delayed(jalign_cnv_realign)(args.input_cram,range_bed,args.ref_fasta,pjoin(tmpdirname,os.path.basename(range_bed)+'.jalign'),args.min_mismatches) 
-                          for range_bed in tqdm.tqdm(bed_files))
+
+Parallel(n_jobs=num_jobs, verbose=10)(delayed(jalign_cnv_realign)(args.input_cram,range_bed,args.ref_fasta,pjoin(tmpdirname,os.path.basename(range_bed)+'.jalign'),args.min_mismatches) 
+                          for range_bed in bed_files)
 with open(pjoin(tmpdirname, "jalign.bed"),'w') as merged_bed_file:
     for bed_file in bed_files:
         with open(f"{bed_file}.jalign.bed",'r') as bf:
