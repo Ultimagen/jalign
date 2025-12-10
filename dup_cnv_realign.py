@@ -344,7 +344,7 @@ with open(OUT_BED, "w") as out_bed, open(OUT_LOG, "w") as flog:
                             if dscore > stringent_score:
                                 djump_much_better += 1
 
-                if TOOL == "para_align":
+                if TOOL == "para_jalign":
                     qname1, better, score, score1, score2, jgain, size1, size2, \
                     dscore, dscore1, dscore2, djgain, dsize1, dsize2 = ainfo              
                     score, score1, score2, size1, size2 = map(int, (score, score1, score2, size1, size2))

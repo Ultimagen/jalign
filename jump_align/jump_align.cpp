@@ -153,8 +153,8 @@ int main(int argc, char* argv[]) {
 		string dapath2 = to_string(dresult.align2.apath);
 		printf("\t%d\t%d\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%d\t%d", 
 					dresult.score, dresult.jumpInsertSize, dresult.jumpRange,
-					dresult.align1.beginPos, dapath1.c_str(), apath_read_length(dresult.align1.apath), apath_ref_length(result.align1.apath),
-					dresult.align2.beginPos, dapath2.c_str(), apath_read_length(dresult.align2.apath), apath_ref_length(result.align2.apath)
+					dresult.align1.beginPos, dapath1.c_str(), apath_read_length(dresult.align1.apath), apath_ref_length(dresult.align1.apath),
+					dresult.align2.beginPos, dapath2.c_str(), apath_read_length(dresult.align2.apath), apath_ref_length(dresult.align2.apath)
 					);
 
 
