@@ -175,7 +175,7 @@ def is_softclipped(read):
     return read.cigartuples[0][0] == pysam.CSOFT_CLIP or read.cigartuples[-1][0] == pysam.CSOFT_CLIP
 
 def is_substential_softclipped(read):
-    return (read.cigartuples[0][0] == pysam.CSOFT_CLIP and read.cigartuples[0][1]) >= SOFTCLIP_THRESHOLD \
+    return (read.cigartuples[0][0] == pysam.CSOFT_CLIP and read.cigartuples[0][1] >= SOFTCLIP_THRESHOLD) \
                 or (read.cigartuples[-1][0] == pysam.CSOFT_CLIP and read.cigartuples[-1][1] >= SOFTCLIP_THRESHOLD)
 
 # a filtering function to see if a read is worth "accepting" into the set to reads to consider
@@ -185,6 +185,8 @@ def accept_read(read):
     if MIN_MISMATCHES <= 0:
         return True
     nm = count_nm_mismatches(read)
+    if nm is None:
+        nm = 0
     return nm >= MIN_MISMATCHES
 
 # process a single cnv region (essentially a line from an input bed file)
@@ -262,7 +264,8 @@ def process_cnv(chrom, start, end, flog):
     header_seen = False
     realignments = []
     rheader = []
-    flog.write(f">>> alignments: {chrom}:{start}-{end}\n")
+    if flog:
+        flog.write(f">>> alignments: {chrom}:{start}-{end}\n")
     for alignment, read in zip(alignments[0].split("\n"), [None, *reads_in_order]):
         if flog:
             flog.write(alignment + "\n")
@@ -274,7 +277,8 @@ def process_cnv(chrom, start, end, flog):
             in1 = read.query_name in reads_in_ref[0]
             in2 = read.query_name in reads_in_ref[1]
             realignments.append([read, refs[0][0], refs[1][0], a, in1, in2])
-    flog.write(f"<<< alignments: {chrom}:{start}-{end}\n")
+    if flog:
+        flog.write(f"<<< alignments: {chrom}:{start}-{end}\n")
 
     return (rheader, realignments, nlines)    
 

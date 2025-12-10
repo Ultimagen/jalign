@@ -18,7 +18,7 @@ def jalign_cnv_realign(input_cram,range_bed,ref_fasta,output_prefix,min_mismatch
 parser = argparse.ArgumentParser(prog="annotate_with_jalign.py", 
                                 description="adds jump alignment annotations to the VCF")
 parser.add_argument("--input_cram", help="input cram file",required=True,type=str)
-parser.add_argument("--ref_fasta", help="reference fasta file", required=False, type=str)
+parser.add_argument("--ref_fasta", help="reference fasta file", required=True, type=str)
 parser.add_argument("--input_vcf", help="input_file", required=True, type=str)
 parser.add_argument("--output_vcf", help="output_file", required=True, type=str)
 parser.add_argument("--min_mismatches", help="minimum mismatches for jalign", required=False, type=int, default=5)
