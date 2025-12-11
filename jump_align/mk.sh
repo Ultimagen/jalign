@@ -11,3 +11,11 @@ g++ -O3 -Werror \
  jump_align.cpp \
  -o jump_align
 
+g++ -O3 -Werror \
+ -DNDEBUG \
+ \
+ para_jalign.cpp \
+ -o para_jalign \
+ -lparasail
+ 
+

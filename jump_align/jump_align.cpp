@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
-#include <thread>
 #include "GlobalAligner.hpp"
 #include "GlobalJumpAligner.hpp"
 #include "logging.h"
@@ -68,9 +67,16 @@ int main(int argc, char* argv[]) {
 	// loop on reading lines and process
 	int lineno = 0;
 	struct refs_t last_refs;
-	printf("readName\tscore\tjumpInsertSize\tjumpRange\t");
+	printf("readName\t");
+
+	printf("score\tjumpInsertSize\tjumpRange\t");
 	printf("jbegin1\tjapath1\tjreadlen1\tjreflen1\t");
 	printf("jbegin2\tjapath2\tjreadlen2\tjreflen2\t");
+
+	printf("dscore\tdjumpInsertSize\tdjumpRange\t");
+	printf("djbegin1\tdjapath1\tdjreadlen1\tdjreflen1\t");
+	printf("djbegin2\tdjapath2\tdjreadlen2\tdjreflen2\t");
+
 	printf("score1\tbegin1\tapath1\treadlen1\treflen1\t");
 	printf("score2\tbegin2\tapath2\treadlen2\treflen2\n");
 	while ( fgets(linebuf[linebuf_index], sizeof(linebuf[0]), infile) ) {
@@ -120,32 +126,17 @@ int main(int argc, char* argv[]) {
 
 		// setup results for the different aligners
 		JumpAlignmentResult<int> result;
+		JumpAlignmentResult<int> dresult;
 		AlignmentResult<int> result1;
 		AlignmentResult<int> result2;
 
-#ifdef USE_THREADS
-		// jump align
-		thread t([&] {
-			jumpAlign<GlobalJumpAligner<int>,const char*,int>(
-				jump_aligner, seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], refs.ptr[1], refs.ptr[1] + refs.len[1], result);
-		});
 
-		// ref1 align
-		thread t1([&] {
-			aligner1.align(seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], result1);
-		});
-		thread t2([&] {
-			aligner2.align(seq, seq + seq_len, refs.ptr[1], refs.ptr[1] + refs.len[1], result2);
-		});
-		t.join();
-		t1.join();
-		t2.join();
-#else
 		jumpAlign<GlobalJumpAligner<int>,const char*,int>(
 			jump_aligner, seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], refs.ptr[1], refs.ptr[1] + refs.len[1], result);
-		//aligner1.align(seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], result1);
-		//aligner2.align(seq, seq + seq_len, refs.ptr[1], refs.ptr[1] + refs.len[1], result2);
-#endif		
+		jumpAlign<GlobalJumpAligner<int>,const char*,int>(
+			jump_aligner, seq, seq + seq_len, refs.ptr[1], refs.ptr[1] + refs.len[1], refs.ptr[0], refs.ptr[0] + refs.len[0], dresult);
+		aligner1.align(seq, seq + seq_len, refs.ptr[0], refs.ptr[0] + refs.len[0], result1);
+		aligner2.align(seq, seq + seq_len, refs.ptr[1], refs.ptr[1] + refs.len[1], result2);
 
 		// process jump align results
 		string apath1 = to_string(result.align1.apath);
@@ -157,11 +148,23 @@ int main(int argc, char* argv[]) {
 					result.align2.beginPos, apath2.c_str(), apath_read_length(result.align2.apath), apath_ref_length(result.align2.apath)
 					);
 
+		// process second jump align results
+		string dapath1 = to_string(dresult.align1.apath);
+		string dapath2 = to_string(dresult.align2.apath);
+		printf("\t%d\t%d\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%d\t%d", 
+					dresult.score, dresult.jumpInsertSize, dresult.jumpRange,
+					dresult.align1.beginPos, dapath1.c_str(), apath_read_length(dresult.align1.apath), apath_ref_length(dresult.align1.apath),
+					dresult.align2.beginPos, dapath2.c_str(), apath_read_length(dresult.align2.apath), apath_ref_length(dresult.align2.apath)
+					);
+
+
 		// simple align results
 		for ( int i = 0 ; i < 2 ; i++ ) {
 			AlignmentResult<int>& result = !i ? result1 : result2;
 			string apath = to_string(result.align.apath);
-			printf("\t%d\t%d\t%s\t%d\t%d", 0, 0, "1S", 1, 1);
+			printf("\t%d\t%d\t%s\t%d\t%d", 
+						result.score,
+						result.align.beginPos, apath.c_str(), apath_read_length(result.align.apath), apath_ref_length(result.align.apath));
 		}
 
 		printf("\n");

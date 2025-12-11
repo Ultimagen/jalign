@@ -42,14 +42,15 @@ RUN apt-get update && \
     ssh \
     zsh \
     wget \
-    unzip
+    unzip \
+    libparasail-dev
 
 RUN apt-get update && \
   apt-get -y install --no-install-recommends \
     python3-pip \
 	parallel
 RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN pip install jupyterlab pysam networkx joblib
+RUN pip install jupyterlab pysam networkx joblib tqdm
 
 
 # download manta source code (no need to compule at this time)
@@ -71,7 +72,7 @@ RUN mkdir -p /jalign && \
     chmod 755 /jalign
 
 COPY . jalign/
-RUN cd jalign/jump_align && ./mk.sh && cp jump_align /usr/local/bin
+RUN cd jalign/jump_align && ./mk.sh && cp jump_align /usr/local/bin && cp para_jalign /usr/local/bin
 
 # prepare python stuff
 RUN cd jalign && jupyter-nbconvert --to python cnv_realign.ipynb && chmod +x cnv_realign.py
