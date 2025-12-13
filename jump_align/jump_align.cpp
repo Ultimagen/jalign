@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
+#include <climits>
 #include "GlobalAligner.hpp"
 #include "GlobalJumpAligner.hpp"
 #include "logging.h"
@@ -68,17 +69,9 @@ int main(int argc, char* argv[]) {
 	int lineno = 0;
 	struct refs_t last_refs;
 	printf("readName\t");
-
-	printf("score\tjumpInsertSize\tjumpRange\t");
-	printf("jbegin1\tjapath1\tjreadlen1\tjreflen1\t");
-	printf("jbegin2\tjapath2\tjreadlen2\tjreflen2\t");
-
-	printf("dscore\tdjumpInsertSize\tdjumpRange\t");
-	printf("djbegin1\tdjapath1\tdjreadlen1\tdjreflen1\t");
-	printf("djbegin2\tdjapath2\tdjreadlen2\tdjreflen2\t");
-
-	printf("score1\tbegin1\tapath1\treadlen1\treflen1\t");
-	printf("score2\tbegin2\tapath2\treadlen2\treflen2\n");
+	printf("score\tjreadlen1\tjreadlen2\t");
+	printf("dscore\tdjreadlen1\tdjreadlen2\t");
+	printf("score1\tscore2\n");
 	while ( fgets(linebuf[linebuf_index], sizeof(linebuf[0]), infile) ) {
 		lineno++;
 		char* line = linebuf[linebuf_index];
@@ -139,34 +132,24 @@ int main(int argc, char* argv[]) {
 		aligner2.align(seq, seq + seq_len, refs.ptr[1], refs.ptr[1] + refs.len[1], result2);
 
 		// process jump align results
-		string apath1 = to_string(result.align1.apath);
-		string apath2 = to_string(result.align2.apath);
-		printf("%s\t%d\t%d\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%d\t%d", 
+		printf("%s\t%d\t%d\t%d", 
 					qname,
-					result.score, result.jumpInsertSize, result.jumpRange,
-					result.align1.beginPos, apath1.c_str(), apath_read_length(result.align1.apath), apath_ref_length(result.align1.apath),
-					result.align2.beginPos, apath2.c_str(), apath_read_length(result.align2.apath), apath_ref_length(result.align2.apath)
+					result.score, 
+					apath_read_length(result.align1.apath), 
+					apath_read_length(result.align2.apath)
 					);
 
 		// process second jump align results
-		string dapath1 = to_string(dresult.align1.apath);
-		string dapath2 = to_string(dresult.align2.apath);
-		printf("\t%d\t%d\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%d\t%d", 
-					dresult.score, dresult.jumpInsertSize, dresult.jumpRange,
-					dresult.align1.beginPos, dapath1.c_str(), apath_read_length(dresult.align1.apath), apath_ref_length(dresult.align1.apath),
-					dresult.align2.beginPos, dapath2.c_str(), apath_read_length(dresult.align2.apath), apath_ref_length(dresult.align2.apath)
+		printf("\t%d\t%d\t%d", 
+					dresult.score, 
+					apath_read_length(dresult.align1.apath), 
+					apath_read_length(dresult.align2.apath) 
 					);
 
 
 		// simple align results
-		for ( int i = 0 ; i < 2 ; i++ ) {
-			AlignmentResult<int>& result = !i ? result1 : result2;
-			string apath = to_string(result.align.apath);
-			printf("\t%d\t%d\t%s\t%d\t%d", 
-						result.score,
-						result.align.beginPos, apath.c_str(), apath_read_length(result.align.apath), apath_ref_length(result.align.apath));
-		}
-
+		printf("\t%d", result1.score);
+		printf("\t%d", result2.score);
 		printf("\n");
 
 

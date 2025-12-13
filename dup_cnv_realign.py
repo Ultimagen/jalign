@@ -39,8 +39,7 @@ tmp = "/tmp/jump_align_input." + str(os.getpid())
 LONG_TMP_NAME = False
 
 # alignment tool (last one overrides)
-TOOL = "para_jalign"
-TOOL = "jump_align"
+TOOL = os.environ.get("TOOL", "jump_align")
 
 # template for C aligner command line
 JUMP_ALIGN_CMD = [TOOL, str(MATCH_SCORE), str(MISMATCH_SCORE), str(OPEN_SCORE), str(EXTEND_SCORE), "1", str(JUMP_SCORE), tmp]
@@ -53,7 +52,8 @@ if os.path.exists(LOCAL_JUMP_ALIGN):
 
 # parse commandline
 if len(sys.argv) < 5:
-    print("usage: " + sys.argv[0] + " <input-cram> <range-bed> <ref-fasta> <output-prefix> [<mode>] [<min-mismatches] [<fetch-read-padding>]\n")
+    print("usage: " + sys.argv[0] + " <input-cram> <range-bed> <ref-fasta> <output-prefix> [<mode>] [<min-mismatches] [<fetch-read-padding>]")
+    print("the TOOL environment variable can be used to specify an alterate tool: e.g. para_jalign. defaults to jump_align tool")
     sys.exit(-1)
 
 # commandline invocation
@@ -317,51 +317,27 @@ with open(OUT_BED, "w") as out_bed, open(OUT_LOG, "w") as flog:
                 read, ref1_start, ref2_start, ainfo, in_ref[0], in_ref[1] = realignment
     
                 # decode alignment info
-                if TOOL == "jump_align":
-                    readName,\
-                        score,jumpInsertSize,jumpRange,jbegin1,japath1,jreadlen1,jreflen1,jbegin2,japath2,jreadlen2,jreflen2,\
-                        dscore,djumpInsertSize,djumpRange,djbegin1,djapath1,djreadlen1,djreflen1,djbegin2,djapath2,djreadlen2,djreflen2,\
-                        score1,begin1,apath1,readlen1,reflen1,\
-                        score2,begin2,apath2,readlen2,reflen2 = ainfo
-                    score,jumpInsertSize,jumpRange,jbegin1,jreadlen1,jreflen1,jbegin2,jreadlen2,jreflen2,\
-                        dscore,djumpInsertSize,djumpRange,djbegin1,djreadlen1,djreflen1,djbegin2,djreadlen2,djreflen2,\
-                        score1,begin1,readlen1,reflen1,\
-                        score2,begin2,readlen2,reflen2 \
-                        = map(int, (score,jumpInsertSize,jumpRange,jbegin1,jreadlen1,jreflen1,jbegin2,jreadlen2,jreflen2,dscore,djumpInsertSize,djumpRange,djbegin1,djreadlen1,djreflen1,djbegin2,djreadlen2,djreflen2,score1,begin1,readlen1,reflen1,score2,begin2,readlen2,reflen2))
+                readname = ainfo[0]
+                score, jreadlen1, jreadlen2, dscore, djreadlen1, djreadlen2, score1, score2 = map(int, ainfo[1:])
 
-                    # jump score better?
-                    minimal_score = MAX_SCORE_FRACTION * (jreadlen1 + jreadlen2) *MATCH_SCORE
-                    stringent_score = STRINGENT_MAX_SCORE_FRACTION * (jreadlen1 + jreadlen2) *MATCH_SCORE
-                    if score > 0 and score > max(score1, score2) + MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT :
-                        if min(jreadlen1, jreadlen2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
-                            if score > minimal_score:
-                                jump_better += 1
-                            if score > stringent_score:
-                                jump_much_better += 1
-
-                    minimal_score = MAX_SCORE_FRACTION * (djreadlen1 + djreadlen2) *MATCH_SCORE
-                    stringent_score = STRINGENT_MAX_SCORE_FRACTION * (djreadlen1 + djreadlen2) *MATCH_SCORE
-                    if dscore > 0 and dscore > max(score1, score2) + MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
-                        if min(djreadlen1, djreadlen2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
-                            if dscore > minimal_score:
-                                djump_better += 1
-                            if dscore > stringent_score:
-                                djump_much_better += 1
-
-                if TOOL == "para_jalign":
-                    qname1, better, score, score1, score2, jgain, size1, size2, \
-                    dscore, dscore1, dscore2, djgain, dsize1, dsize2 = ainfo              
-                    score, score1, score2, size1, size2 = map(int, (score, score1, score2, size1, size2))
-                    dscore, dscore1, dscore2, dsize1, dsize2 = map(int, (dscore, dscore1, dscore2, dsize1, dsize2))
-
-                    # jump score better?
-                    if score > 0 and score > max(score1, score2) + MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
-                        if min(size1, size2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
+                # jump score better?
+                minimal_score = MAX_SCORE_FRACTION * (jreadlen1 + jreadlen2) * MATCH_SCORE
+                stringent_score = STRINGENT_MAX_SCORE_FRACTION * (jreadlen1 + jreadlen2) * MATCH_SCORE
+                if score > 0 and score > max(score1, score2) + MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT :
+                    if min(jreadlen1, jreadlen2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
+                        if score > minimal_score:
                             jump_better += 1
+                        if score > stringent_score:
+                            jump_much_better += 1
 
-                    if dscore > 0 and dscore > max(dscore1, dscore2) + MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
-                        if min(dsize1, dsize2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
+                minimal_score = MAX_SCORE_FRACTION * (djreadlen1 + djreadlen2) * MATCH_SCORE
+                stringent_score = STRINGENT_MAX_SCORE_FRACTION * (djreadlen1 + djreadlen2) * MATCH_SCORE
+                if dscore > 0 and dscore > max(score1, score2) + MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
+                    if min(djreadlen1, djreadlen2) >= MIN_SEQ_LEN_JUMP_ALIGN_COMPONENT:
+                        if dscore > minimal_score:
                             djump_better += 1
+                        if dscore > stringent_score:
+                            djump_much_better += 1
 
             
             outline = line[:-1] + ("\t%d\t%d\t%d\t%d\n" % (jump_better, djump_better, jump_much_better, djump_much_better))
